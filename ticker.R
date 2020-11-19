@@ -1,5 +1,7 @@
 source("R/kuant.R")
 
+print(getwd())
+
 # ==> Step 1. get tickers
 tickers <- get_tickers()
 
