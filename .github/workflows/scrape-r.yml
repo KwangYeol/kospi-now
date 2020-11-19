@@ -1,0 +1,143 @@
+name: Scrape latest naver finance data
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 7 * * 1-5'
+
+jobs:
+  scrape-ticker:
+    runs-on: ubuntu-18.04
+    env:
+      RENV_PATHS_ROOT: /home/runner/.local/share/renv
+
+    steps:
+    - name: Check out this repo
+      uses: actions/checkout@v2
+  
+    # https://github.com/actions/cache/blob/main/examples.md#r---renv
+    - uses: actions/cache@v2
+      with:
+        path: ${{ env.RENV_PATHS_ROOT }}
+        key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-renv-
+
+    - name: Install system packages
+      run: |-
+        sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev
+        mkdir -p "${{ env.RENV_PATHS_ROOT }}"
+
+    - uses: r-lib/actions/setup-r@v1
+
+    - name: Restore packages
+      shell: Rscript {0}
+      run: |
+        .libPaths("${{ env.RENV_PATHS_ROOT }}")
+        .libPaths()
+        chooseCRANmirror(ind=1)
+        if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+        renv::restore()
+
+    - run: Rscript ticker.R
+    
+    - name: Commit and push if it changed
+      run: |-
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add -A
+        timestamp=$(date -u)
+        git commit -m "Latest data: ${timestamp}" || exit 0
+        git push
+
+  scrape-naver:
+    runs-on: ubuntu-18.04
+    needs: scrape-ticker
+    env:
+      RENV_PATHS_ROOT: /home/runner/.local/share/renv
+
+    steps:
+    - name: Check out this repo
+      uses: actions/checkout@v2
+  
+    # https://github.com/actions/cache/blob/main/examples.md#r---renv
+    - uses: actions/cache@v2
+      with:
+        path: ${{ env.RENV_PATHS_ROOT }}
+        key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-renv-
+
+    - name: Install system packages
+      run: |-
+        sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev
+        mkdir -p "${{ env.RENV_PATHS_ROOT }}"
+
+    - uses: r-lib/actions/setup-r@v1
+
+    - name: Restore packages
+      shell: Rscript {0}
+      run: |
+        .libPaths("${{ env.RENV_PATHS_ROOT }}")
+        .libPaths()
+        chooseCRANmirror(ind=1)
+        if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+        renv::restore()
+
+    - run: Rscript naver.R
+    
+    - name: Commit and push if it changed
+      run: |-
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add -A
+        timestamp=$(date -u)
+        git commit -m "Latest data: ${timestamp}" || exit 0
+        git push
+
+  scrape-fnguide:
+    runs-on: ubuntu-18.04
+    needs: scrape-ticker
+    env:
+      RENV_PATHS_ROOT: /home/runner/.local/share/renv
+
+    steps:
+    - name: Check out this repo
+      uses: actions/checkout@v2
+  
+    # https://github.com/actions/cache/blob/main/examples.md#r---renv
+    - uses: actions/cache@v2
+      with:
+        path: ${{ env.RENV_PATHS_ROOT }}
+        key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-renv-
+
+    - name: Install system packages
+      run: |-
+        sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev
+        mkdir -p "${{ env.RENV_PATHS_ROOT }}"
+
+    - uses: r-lib/actions/setup-r@v1
+
+    - name: Restore packages
+      shell: Rscript {0}
+      run: |
+        .libPaths("${{ env.RENV_PATHS_ROOT }}")
+        .libPaths()
+        chooseCRANmirror(ind=1)
+        if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+        renv::restore()
+
+    - run: Rscript fnguide.R
+    
+    - name: Commit and push if it changed
+      run: |-
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add -A
+        timestamp=$(date -u)
+        git commit -m "Latest data: ${timestamp}" || exit 0
+        git push
+      
