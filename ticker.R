@@ -1,6 +1,7 @@
 source("R/kuant.R")
 
-print(getwd())
+print(list.files())
+print(list.dirs())
 
 # ==> Step 1. get tickers
 tickers <- get_tickers()

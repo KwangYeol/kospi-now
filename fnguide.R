@@ -1,6 +1,6 @@
 source("R/kuant.R")
 
-setwd('/home/runner/work/kospi-now')
+print(list.files())
 
 # ==> Step 1. get tickers
 fpath <- file.path("data", "tickers.csv")
