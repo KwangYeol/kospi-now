@@ -389,8 +389,8 @@ get_guide_crawl <- function(tickers) {
   return(list(value=value_list, fs=fs_list))
 }
 
-get_guide <- function(tickers, value_list, fs_list) {
-  yyyymmdd <- get_latest_biz_day(sep="-")
+get_guide <- function(yyyymmdd, tickers, value_list, fs_list) {
+  # yyyymmdd <- get_latest_biz_day(sep="-")
   yyyy <- substr(yyyymmdd, 1, 4)
 
   froot <- file.path("data")

@@ -98,7 +98,7 @@ jobs:
 
   scrape-fnguide:
     runs-on: ubuntu-18.04
-    needs: scrape-ticker
+    needs: scrape-naver
     env:
       RENV_PATHS_ROOT: /home/runner/.local/share/renv
 
