@@ -376,8 +376,15 @@ get_guide_crawl <- function(tickers) {
       value_list[[code]] <- ret$value %>% t() %>% data.frame
       value_list[[code]]$Symbol <- name
       fs_list[[code]] <- ret$fs
+    }, warning = function(e) {
+      cat("w")
+      value_list[[code]] <- data.frame(PER=as.double(NA),PBR=as.double(NA),PCR=as.double(NA),PSR=as.double(NA))
+      value_list[[code]]$Symbol <- name
+      fs_list[[code]] <- data.frame(NA)
+      warning(paste0("Error in Guide: ", name))
     }, error = function(e) {
-      value_list[[code]] <- data.frame(NA)
+      cat("e")
+      value_list[[code]] <- data.frame(PER=as.double(NA),PBR=as.double(NA),PCR=as.double(NA),PSR=as.double(NA))
       value_list[[code]]$Symbol <- name
       fs_list[[code]] <- data.frame(NA)
       warning(paste0("Error in Guide: ", name))
