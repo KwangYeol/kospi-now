@@ -393,7 +393,7 @@ get_guide_crawl <- function(tickers) {
       print(paste0("~ ", code))
     }
 
-    Sys.sleep(sample(9:18, 1)/10)
+    Sys.sleep(sample(12:22, 1)/10)
   }
   print("get_guide_crawl: done")
   return(list(value=value_list, fs=fs_list))
