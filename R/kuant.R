@@ -109,7 +109,7 @@ write_symbols <- function(symbols) {
       ds_old <- fread(spath, header=T, 
                       colClasses=c(Symbol="character", Date="Date"))
       if (nrow(ds_old) > 0) {
-        ds <- rbindlist(list(ds_old, ds)) %>% distinct
+        ds <- rbindlist(list(ds_old, ds)) %>% distinct %>% arrange(`Date`)
       }
     }
     # get target ds

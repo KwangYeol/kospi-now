@@ -16,6 +16,6 @@ tickers %>%
   ticker_list
 
 ticker_list <- c(ticker_list, "kospi")
-symbols <- get_symbols(ticker_list, count=5500)
+symbols <- get_symbols(ticker_list, count=7000)
 
 write_symbols(symbols)
