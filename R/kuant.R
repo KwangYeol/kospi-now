@@ -108,7 +108,7 @@ write_symbols <- function(symbols) {
       ds_old <- fread(spath, header=T, 
                       colClasses=c(Symbol="character", Date="Date"))
       if (nrow(ds_old) > 0) {
-        ds <- merge_two(ds_old, ds)
+        ds <- rbindlist(list(ds_old, ds)) %>% distinct
       }
     }
     # get target ds
@@ -197,10 +197,6 @@ get_tickers <- function() {
   tickers
 }
 
-merge_two <- function(d1, d2) {
-  rbindlist(list(d1, d2)) %>% distinct
-}
-
 write_tickers <- function(tickers) {
   tickers[1,8] %>%
     str_replace_all('\\-', '') ->
@@ -221,17 +217,17 @@ write_tickers <- function(tickers) {
     return ()
   }
 
-  tickers_old <- fread(fpath, header = T, colClasses=c(`종목코드`="character"))
+  tickers_old <- fread(fpath, header = T, colClasses=c(`종목코드`="character", `전일대비`="double", `일자`="Date", `EPS`="double", `BPS`="double", `주당배당금`="double"))
 
-  y1 = tickers_old[nrow(tickers),8]
+  # y1 = tickers_old[nrow(tickers),8]
+  y1 = as.character(format(tickers_old[nrow(tickers),8], "%Y-%m-%d"))
   y2 = as.character(tickers[1,8])
 
   if (y1 == y2) {
     print("Equal! return now")
     return ()
   }
-  tickers_merged <- merge_two(tickers_old, tickers)
-  # tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% distinct
+  tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% distinct
   fwrite(tickers_merged, fpath)
   fwrite(tickers, flatest)
 }
