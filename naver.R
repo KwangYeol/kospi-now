@@ -5,7 +5,7 @@ print(list.dirs())
 
 # ==> Step 1. get tickers
 fpath <- file.path("data", "tickers.csv")
-tickers <- fread(fpath, header = T, colClasses=c(`종목코드`="character"))
+tickers <- read_tickers(fpath)
 
 # ==> Step 2. get symbols
 tickers %>%
@@ -16,6 +16,6 @@ tickers %>%
   ticker_list
 
 ticker_list <- c(ticker_list, "kospi")
-symbols <- get_symbols(ticker_list, count=100)
+symbols <- get_symbols(ticker_list, count=5500)
 
 write_symbols(symbols)

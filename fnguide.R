@@ -1,12 +1,11 @@
 source("R/kuant.R")
 
 print(list.files())
-print(list.dirs("data"))
-print(list.files("data/2020/"))
+# print(list.dirs("data"))
 
 # ==> Step 1. get tickers
 fpath <- file.path("data", "tickers.csv")
-tickers <- fread(fpath, header = T, colClasses=c(`종목코드`="character", `일자`="Date"))
+tickers <- read_tickers(fpath)
 
 yyyymmdd <- as.character(format(tickers[1,8], "%Y-%m-%d"))
 
@@ -14,3 +13,6 @@ yyyymmdd <- as.character(format(tickers[1,8], "%Y-%m-%d"))
 ret <- get_guide_crawl(tickers)
 get_guide(yyyymmdd, tickers, ret$value, ret$fs)
 # ----
+
+# ==> Step 3. get wise index
+get_wise_index()

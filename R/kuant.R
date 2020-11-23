@@ -87,9 +87,10 @@ write_symbols <- function(symbols) {
   yyyy <- str_sub(yyyymmdd,1,4)
   fpath <- file.path("data", yyyy)
 
+  print("Processing: ")
   options(datatable.fread.datatable=FALSE)
   for (name in names(symbols)) {
-    print(paste0("Processing: ", name))
+    cat(".")
     symbols[[name]] %>%
       mutate(
         `Symbol` = name, 
@@ -114,6 +115,7 @@ write_symbols <- function(symbols) {
     # get target ds
     fwrite(ds, spath)
   }
+  print(" done")
 }
 
 #                                                             #
@@ -230,6 +232,11 @@ write_tickers <- function(tickers) {
   tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% distinct
   fwrite(tickers_merged, fpath)
   fwrite(tickers, flatest)
+}
+
+read_tickers <- function(fpath) {
+  tickers <- fread(fpath, header = T, colClasses=c(`종목코드`="character", `전일대비`="double", `일자`="Date", `EPS`="double", `BPS`="double", `주당배당금`="double"))
+  tickers
 }
 
 #                                                             #
@@ -379,7 +386,7 @@ get_guide_crawl <- function(tickers) {
       print(paste0("~ ", code))
     }
 
-    Sys.sleep(sample(12:20, 1)/10)
+    Sys.sleep(sample(9:18, 1)/10)
   }
   print("get_guide_crawl: done")
   return(list(value=value_list, fs=fs_list))
@@ -393,6 +400,7 @@ get_guide <- function(yyyymmdd, tickers, value_list, fs_list) {
   fpath <- file.path(froot, yyyy)
 
   # 💵
+  glimpse(value_list)
   value_list %>%
     bind_rows %>%
     select('PER', 'PBR', 'PCR', 'PSR', 'Symbol') %>%
@@ -410,7 +418,7 @@ get_guide <- function(yyyymmdd, tickers, value_list, fs_list) {
     select(-c(PER.x, PER.y, PBR.x, PBR.y, PCR.x, PCR.y, PSR.x, PSR.y)) ->
     tickers_all
 
-  tickers_latest <- tickers_all[tickers_all$`일자`==yyyymmdd]
+  tickers_latest <- tickers_all[tickers_all$`일자`==yyyymmdd,]
 
   flatest <- file.path(froot, "tickers.csv")
   fall <- file.path(fpath, "tickers.csv")

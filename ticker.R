@@ -11,6 +11,3 @@ tickers %>%
   kospi_tickers
 
 write_tickers(kospi_tickers)
-
-# ==> Step 3. get wise index
-get_wise_index()
