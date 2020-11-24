@@ -185,7 +185,7 @@ get_tickers <- function() {
     filter(str_trim(`관리여부`) == "-") %>%
     filter(!grepl('스팩', (.)[, '종목명'])) %>%
     filter(str_sub((.)[, '종목코드'], -1, -1) == 0) %>%
-    mutate(`PCR` = NA, `PSR` = NA) ->
+    mutate(`PCR` = as.double(NA), `PSR` = as.double(NA)) ->
     tickers
 
   tickers = tickers[order(-tickers['시가총액(원)']), ]
@@ -222,14 +222,16 @@ write_tickers <- function(tickers) {
   tickers_old <- fread(fpath, header = T, colClasses=c(`종목코드`="character", `전일대비`="double", `일자`="Date", `EPS`="double", `BPS`="double", `주당배당금`="double"))
 
   # y1 = tickers_old[nrow(tickers),8]
-  y1 = as.character(format(tickers_old[nrow(tickers),8], "%Y-%m-%d"))
+  y1 = as.character(format(tickers_old[nrow(tickers) - 100, 8], "%Y-%m-%d"))
   y2 = as.character(tickers[1,8])
 
   if (y1 == y2) {
     print("Equal! return now")
     return ()
   }
-  tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% distinct
+  tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% 
+    distinct %>% 
+    arrange(c("일자", `시가총액(원)`))
   fwrite(tickers_merged, fpath)
   fwrite(tickers, flatest)
 }
