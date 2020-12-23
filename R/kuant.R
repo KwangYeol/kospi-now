@@ -229,9 +229,16 @@ write_tickers <- function(tickers) {
     print("Equal! return now")
     return ()
   }
-  tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% 
-    distinct %>% 
-    arrange(c("일자", `시가총액(원)`))
+  # tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% 
+  tickers_merged <- rbind(tickers_old, tickers) %>% unlist
+  print(head(tickers_old))
+  print(head(tickers))
+  print(head(tickers_merged))
+  glimpse(tickers_merged)
+  tickers_merged %>%
+    unique("일자", "종목코드") %>% 
+    arrange("일자", "시가총액(원)") ->
+    tickers_merged
   fwrite(tickers_merged, fpath)
   fwrite(tickers, flatest)
 }
