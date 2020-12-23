@@ -185,7 +185,9 @@ get_tickers <- function() {
     filter(str_trim(`관리여부`) == "-") %>%
     filter(!grepl('스팩', (.)[, '종목명'])) %>%
     filter(str_sub((.)[, '종목코드'], -1, -1) == 0) %>%
-    mutate(`PCR` = as.double(NA), `PSR` = as.double(NA)) ->
+    mutate(
+      `PCR` = as.double(NA), 
+      `PSR` = as.double(NA)) ->
     tickers
 
   tickers = tickers[order(-tickers['시가총액(원)']), ]
@@ -213,15 +215,28 @@ write_tickers <- function(tickers) {
   fpath <- file.path(fdir, "tickers.csv")
   flatest <- file.path(froot, "tickers.csv")
 
-  if (!file.exists(fpath)) {
+  if (!file.exists(flatest)) {
     fwrite(tickers, flatest)
     fwrite(tickers, fpath)
     return ()
   }
 
-  tickers_old <- fread(fpath, header = T, colClasses=c(`종목코드`="character", `전일대비`="double", `일자`="Date", `EPS`="double", `BPS`="double", `주당배당금`="double"))
+  tickers_old <- fread(
+    flatest, 
+    header = T, 
+    colClasses=c(
+      `종목코드`="character", 
+      `전일대비`="double", 
+      `일자`="Date", 
+      `EPS`="double", 
+      `PER`="double", 
+      `BPS`="double", 
+      `PBR`="double", 
+      `주당배당금`="double", 
+      `배당수익률`="double",
+      `PCR`="double", 
+      `PSR`="double"))
 
-  # y1 = tickers_old[nrow(tickers),8]
   y1 = as.character(format(tickers_old[nrow(tickers) - 100, 8], "%Y-%m-%d"))
   y2 = as.character(tickers[1,8])
 
@@ -229,16 +244,14 @@ write_tickers <- function(tickers) {
     print("Equal! return now")
     return ()
   }
-  # tickers_merged <- rbindlist(list(tickers_old, tickers)) %>% 
-  tickers_merged <- rbind(tickers_old, tickers) %>% unlist
-  print(head(tickers_old))
-  print(head(tickers))
-  print(head(tickers_merged))
-  glimpse(tickers_merged)
-  tickers_merged %>%
-    unique("일자", "종목코드") %>% 
-    arrange("일자", "시가총액(원)") ->
+
+  names(tickers_old)<-names(tickers)
+  l = list(tickers_old, tickers)
+  rbindlist(l, use.names=T) %>%
+    unique(by=c("일자", "종목코드")) %>% 
+    arrange(`일자`, `시가총액(원)`) ->
     tickers_merged
+
   fwrite(tickers_merged, fpath)
   fwrite(tickers, flatest)
 }
