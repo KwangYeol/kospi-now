@@ -388,6 +388,7 @@ get_guide_crawl <- function(tickers) {
   value_list = list()
   fs_list = list()
 
+  print("get_guide_crawl: start")
   for(code in 1 : nrow(tickers) ) {
     name = tickers$'종목코드'[code]
 
@@ -411,11 +412,11 @@ get_guide_crawl <- function(tickers) {
       fs_list[[code]] <- data.frame(NA)
       warning(paste0("Error in Guide: ", name))
     })
-    if (code %% 100 == 0) {
-      print(paste0("~ ", code))
-    }
 
-    Sys.sleep(sample(12:22, 1)/10)
+    if (code %% 100 == 0) {
+      print(paste0(" : ", code))
+    }
+    Sys.sleep(sample(9:18, 1)/10)
   }
   print("get_guide_crawl: done")
   return(list(value=value_list, fs=fs_list))
