@@ -14,6 +14,8 @@ suppressMessages(library(timetk))
 suppressMessages(library(dplyr))
 suppressMessages(library(arrow))
 suppressMessages(library(jsonlite))
+suppressMessages(library(digest))
+suppressMessages(library(gtools))
 
 if (!arrow::arrow_available()) {
   arrow::install_arrow()
