@@ -26,7 +26,7 @@ jobs:
 
     - name: Install system packages
       run: |-
-        sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev
+        sudo apt update && sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev --fix-missing
         mkdir -p "${{ env.RENV_PATHS_ROOT }}"
 
     - uses: r-lib/actions/setup-r@v1
