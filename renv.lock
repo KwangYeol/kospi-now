@@ -267,6 +267,12 @@
       "Source": "Repository",
       "Repository": "RSPM",
       "Hash": "c2ea03282caa1f6972dc84fc5bf671cc"
+    },
+    "data.table": {
+      "Package": "data.table",
+      "Version": "1.14.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
     }
   }
 }
