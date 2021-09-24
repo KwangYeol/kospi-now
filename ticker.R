@@ -7,8 +7,9 @@ print(list.dirs())
 tickers <- get_tickers()
 
 tickers %>%
-  filter(`시장구분` == '코스피') ->
-  filter(asc(digest(object=`종목코드`, algo='sha256')) < asc('8'))->
+  filter(`시장구분` == 'KOSPI') ->
   kospi_tickers
+
+  # filter(asc(digest(object=`종목코드`, algo='sha256')) < asc('8'))->
 
 write_tickers(kospi_tickers)

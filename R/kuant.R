@@ -21,16 +21,19 @@ if (!arrow::arrow_available()) {
   arrow::install_arrow()
 }
 
+today <- Sys.Date()
+yyyymmdd <- format(today, format="%Y%m%d")
+
 #                                                             #
 # <-----------           naver finance           -----------> #
 #                                                             #
 get_latest_biz_day <- function(sep='') {
-  url = 'https://finance.naver.com/sise/sise_deposit.nhn'
+  url = 'https://finance.naver.com/sise/sise_index.naver?code=KOSPI'
 
   # 최근 영업일 구하기
   biz_day <- GET(url) %>%
     read_html(encoding = 'EUC-KR') %>%
-    html_nodes(xpath = '//*[@id="type_0"]/div/ul[2]/li/span') %>%
+    html_nodes(xpath = '//*[@id="contentarea_left"]/div[1]/div/span') %>%
     html_text() %>%
     str_match(('[0-9]+.[0-9]+.[0-9]+') ) %>%
     str_replace_all('\\.', sep)
@@ -123,68 +126,79 @@ write_symbols <- function(symbols) {
 #                                                             #
 # <-----------            KIND  (KRX)            -----------> #
 #                                                             #
-gen_otp_url <- 'http://marketdata.krx.co.kr/contents/COM/GenerateOTP.jspx'
-ticker_download_url <- 'http://file.krx.co.kr/download.jspx'
+latest_biz_day <- get_latest_biz_day()
 
-gen_otp <- function(utype = 'index') {
-  gen_otp_data = list(name = 'fileDown', filetype = 'csv')
+download_sector <- function(market) {
+  otp_url =
+    'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
+  download_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
 
-  yyyymmdd <- get_latest_biz_day()
-
-  if (utype=='index') {
-    c_url="MKD/13/1302/13020401/mkd13020401"
-    gen_otp_data <- c(gen_otp_data,
-                      market_gubun = 'ALL',
-                      gubun = '1',
-                      schdate = yyyymmdd,
-                      url=c_url,
-                      pagePath = paste0("/contents/", c_url, ".jsp"))
-  } else if (utype =='sector') {
-    c_url='MKD/03/0303/03030103/mkd03030103'
-    gen_otp_data <- c(gen_otp_data,
-                      tp_cd='ALL',
-                      date=yyyymmdd,
-                      lang='ko',
-                      url=c_url,
-                      pagePath = paste0("/contents/", c_url, ".jsp"))
-  } else {
-    return (NULL)
-  }
-
-  otp = POST(gen_otp_url, query = gen_otp_data) %>%
+  gen_otp_data = list(
+    mktId = market,
+    trdDd = latest_biz_day,
+    money = '1',
+    csvxls_isNo = 'false',
+    name = 'fileDown',
+    url = 'dbms/MDC/STAT/standard/MDCSTAT03901'
+  )
+  otp <- POST(otp_url, query = gen_otp_data) %>%
     read_html() %>%
     html_text()
-  otp
+
+  data <- POST(download_url, query = list(code = otp), add_headers(referer = otp_url)) %>%
+    read_html(encoding = 'EUC-KR') %>%
+    html_text() %>%
+    read_csv()
+  data
 }
 
-get_ticker_by_type <- function(utype='index') {
-  otp <- gen_otp(utype)
+download_index <- function() {
+  otp_url =
+    'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
+  download_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
 
-  POST(ticker_download_url, 
-       query = list(code = otp),
-       add_headers(referer = gen_otp_url)) %>%
+  gen_otp_data = list(
+    searchType = '1',
+    mktId = 'ALL',
+    trdDd = latest_biz_day,
+    money = '1',
+    csvxls_isNo = 'false',
+    name = 'fileDown',
+    url = 'dbms/MDC/STAT/standard/MDCSTAT03501'
+  )
+  otp <- POST(otp_url, query = gen_otp_data) %>%
     read_html() %>%
-    html_text() %>%
-    read_csv() ->
-    down_csv
+    html_text()
 
-  down_csv
+  data <- POST(download_url, query = list(code = otp), add_headers(referer = otp_url)) %>%
+    read_html(encoding = 'EUC-KR') %>%
+    html_text() %>%
+    read_csv()
+  data
+}
+
+get_sector_csv <- function() {
+  c1 <- download_csv("STK")
+  c2 <- download_csv("KSQ")
+  rbind(c1, c2)
+}
+
+get_index_csv <- function() {
+  download_index()
 }
 
 get_tickers <- function() {
-  by_index <- get_ticker_by_type("index")
-  by_sector <- get_ticker_by_type("sector")
+  by_index <- get_index_csv()
+  by_sector <- get_sector_csv()
 
   join_key = intersect(names(by_index), names(by_sector))
-  tickers = merge(by_sector,
-                     by_index,
-                     by = join_key,
-                     all = FALSE)
+  tickers = merge(by_sector, by_index,
+                  by = join_key,
+                  all = FALSE)
 
   # 상품명. 대신밸런스제7호스팩, 하이제4호스팩, 등
   # 우선주. 이름이 한글자만 다르다. xxx우B, xxx우C가 있다.
-  tickers[1:16] %>%
-    filter(str_trim(`관리여부`) == "-") %>%
+  tickers %>%
     filter(!grepl('스팩', (.)[, '종목명'])) %>%
     filter(str_sub((.)[, '종목코드'], -1, -1) == 0) %>%
     mutate(
@@ -192,21 +206,21 @@ get_tickers <- function() {
       `PSR` = as.double(NA)) ->
     tickers
 
-  tickers = tickers[order(-tickers['시가총액(원)']), ]
+  tickers = tickers[order(-tickers['시가총액']), ]
 
-  tickers$EPS <- parse_number(tickers$EPS)
-  tickers$PER <- parse_number(tickers$PER)
-  tickers$BPS <- parse_number(tickers$BPS)
-  tickers$PBR <- parse_number(tickers$PBR)
+  # tickers$EPS <- parse_number(tickers$EPS)
+  # tickers$PER <- parse_number(tickers$PER)
+  # tickers$BPS <- parse_number(tickers$BPS)
+  # tickers$PBR <- parse_number(tickers$PBR)
 
   rownames(tickers) = NULL
   tickers
 }
 
 write_tickers <- function(tickers) {
-  tickers[1,8] %>%
-    str_replace_all('\\-', '') ->
-    yyyymmdd
+  # tickers[1,8] %>%
+  #   str_replace_all('\\-', '') ->
+  #   yyyymmdd
   yyyy <- str_sub(yyyymmdd,1,4)
   
   froot <- file.path("data")
@@ -228,8 +242,7 @@ write_tickers <- function(tickers) {
     header = T, 
     colClasses=c(
       `종목코드`="character", 
-      `전일대비`="double", 
-      `일자`="Date", 
+      `대비`="double", 
       `EPS`="double", 
       `PER`="double", 
       `BPS`="double", 
@@ -239,19 +252,11 @@ write_tickers <- function(tickers) {
       `PCR`="double", 
       `PSR`="double"))
 
-  y1 = as.character(format(tickers_old[nrow(tickers) - 100, 8], "%Y-%m-%d"))
-  y2 = as.character(tickers[1,8])
-
-  if (y1 == y2) {
-    print("Equal! return now")
-    return ()
-  }
-
   names(tickers_old)<-names(tickers)
   l = list(tickers_old, tickers)
   rbindlist(l, use.names=T) %>%
     unique(by=c("일자", "종목코드")) %>% 
-    arrange(`일자`, `시가총액(원)`) ->
+    arrange(`일자`, `시가총액`) ->
     tickers_merged
 
   fwrite(tickers_merged, fpath)
@@ -259,7 +264,7 @@ write_tickers <- function(tickers) {
 }
 
 read_tickers <- function(fpath) {
-  tickers <- fread(fpath, header = T, colClasses=c(`종목코드`="character", `전일대비`="double", `일자`="Date", `EPS`="double", `BPS`="double", `주당배당금`="double"))
+  tickers <- fread(fpath, header = T, colClasses=c(`종목코드`="character", `대비`="double", `EPS`="double", `BPS`="double", `주당배당금`="double"))
   tickers
 }
 
@@ -440,7 +445,7 @@ get_guide <- function(yyyymmdd, tickers, value_list, fs_list) {
     mutate_all(list(~na_if(., Inf))) ->
     values
 
-  left_join(tickers, values, by = c('종목코드'='Symbol', '일자'='Date')) %>%
+  left_join(tickers, values, by = c('종목코드'='Symbol')) %>%
     mutate(
       `PER` = ifelse(is.na(PER.y), PER.x, PER.y),
       `PBR` = ifelse(is.na(PBR.y), PBR.x, PBR.y),
@@ -450,12 +455,13 @@ get_guide <- function(yyyymmdd, tickers, value_list, fs_list) {
     select(-c(PER.x, PER.y, PBR.x, PBR.y, PCR.x, PCR.y, PSR.x, PSR.y)) ->
     tickers_all
 
-  tickers_latest <- tickers_all[tickers_all$`일자`==yyyymmdd,]
+  # tickers_latest <- tickers_all[tickers_all$`일자`==yyyymmdd,]
 
   flatest <- file.path(froot, "tickers.csv")
-  fall <- file.path(fpath, "tickers.csv")
-  fwrite(tickers_all, fall)
-  fwrite(tickers_latest, flatest)
+  # fall <- file.path(fpath, "tickers.csv")
+  # fwrite(tickers_all, fall)
+  # fwrite(tickers_latest, flatest)
+  fwrite(tickers_all, flatest)
   print("ticker.csv updated")
 
   # 📕

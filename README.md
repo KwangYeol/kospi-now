@@ -14,7 +14,7 @@ docker run --rm -it \
 
 Install system packages
 ```bash
-apt-get update && apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+apt update && apt install -y libcurl4-openssl-dev libssl-dev libxml2-dev
 ```
 
 ```bash

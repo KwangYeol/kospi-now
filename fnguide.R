@@ -7,7 +7,7 @@ print(list.files())
 fpath <- file.path("data", "tickers.csv")
 tickers <- read_tickers(fpath)
 
-yyyymmdd <- as.character(format(tickers[1,8], "%Y-%m-%d"))
+yyyymmdd <- get_latest_biz_day()
 
 # ==> Step 2. get financial data
 ret <- get_guide_crawl(tickers)

@@ -9,7 +9,7 @@ tickers <- read_tickers(fpath)
 
 # ==> Step 2. get symbols
 tickers %>%
-  filter(`시장구분` == '코스피') %>%
+  filter(`시장구분` == 'KOSPI') %>%
   select('종목코드') %>%
   t %>%
   as.vector ->
