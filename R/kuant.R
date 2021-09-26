@@ -95,7 +95,8 @@ write_symbols <- function(symbols) {
   print("Processing: ")
   options(datatable.fread.datatable=FALSE)
   for (name in names(symbols)) {
-    cat(".")
+    # cat(".")
+    print(name)
     symbols[[name]] %>%
       mutate(
         `Symbol` = name, 
@@ -108,16 +109,19 @@ write_symbols <- function(symbols) {
       ) %>%
       select(c(6,7,1,2,3,4,5)) ->
       ds
-
+    # head(ds)
     spath <- file.path(fpath, paste0(name, ".csv"))
-    if(file.exists(spath)) {
-      ds_old <- fread(spath, header=T, 
-                      colClasses=c(Symbol="character", Date="Date"))
-      if (nrow(ds_old) > 0) {
-        ds <- rbindlist(list(ds_old, ds)) %>% distinct %>% arrange(`Date`)
-      }
-    }
-    # get target ds
+    print(spath)
+    # TODO: overwrite하지말고 append 하는 방법을 찾자. 
+    # if(file.exists(spath)) {
+    #   ds_old <- fread(spath, header=T, 
+    #                   colClasses=c(Symbol="character", Date="Date"))
+    #   if (nrow(ds_old) > 0) {
+    #     # head(ds_old)
+    #     ds <- rbindlist(list(ds_old, ds)) %>% distinct(., `Date`) %>% arrange(`Date`)
+    #   }
+    # }
+    # # get target ds
     fwrite(ds, spath)
   }
   print(" done")
@@ -178,8 +182,8 @@ download_index <- function() {
 }
 
 get_sector_csv <- function() {
-  c1 <- download_csv("STK")
-  c2 <- download_csv("KSQ")
+  c1 <- download_sector("STK")
+  c2 <- download_sector("KSQ")
   rbind(c1, c2)
 }
 
@@ -231,35 +235,35 @@ write_tickers <- function(tickers) {
   fpath <- file.path(fdir, "tickers.csv")
   flatest <- file.path(froot, "tickers.csv")
 
-  if (!file.exists(flatest)) {
-    fwrite(tickers, flatest)
-    fwrite(tickers, fpath)
-    return ()
-  }
+  # if (!file.exists(flatest)) {
+  #   fwrite(tickers, flatest)
+  #   fwrite(tickers, fpath)
+  #   return ()
+  # }
 
-  tickers_old <- fread(
-    flatest, 
-    header = T, 
-    colClasses=c(
-      `종목코드`="character", 
-      `대비`="double", 
-      `EPS`="double", 
-      `PER`="double", 
-      `BPS`="double", 
-      `PBR`="double", 
-      `주당배당금`="double", 
-      `배당수익률`="double",
-      `PCR`="double", 
-      `PSR`="double"))
+  # tickers_old <- fread(
+  #   flatest, 
+  #   header = T, 
+  #   colClasses=c(
+  #     `종목코드`="character", 
+  #     `대비`="double", 
+  #     `EPS`="double", 
+  #     `PER`="double", 
+  #     `BPS`="double", 
+  #     `PBR`="double", 
+  #     `주당배당금`="double", 
+  #     `배당수익률`="double",
+  #     `PCR`="double", 
+  #     `PSR`="double"))
 
-  names(tickers_old)<-names(tickers)
-  l = list(tickers_old, tickers)
-  rbindlist(l, use.names=T) %>%
-    unique(by=c("일자", "종목코드")) %>% 
-    arrange(`일자`, `시가총액`) ->
-    tickers_merged
+  # names(tickers_old)<-names(tickers)
+  # l = list(tickers_old, tickers)
+  # rbindlist(l, use.names=T) %>%
+  #   unique(by=c("일자", "종목코드")) %>% 
+  #   arrange(`일자`, `시가총액`) ->
+  #   tickers_merged
 
-  fwrite(tickers_merged, fpath)
+  # fwrite(tickers_merged, fpath)
   fwrite(tickers, flatest)
 }
 
@@ -271,7 +275,7 @@ read_tickers <- function(fpath) {
 #                                                             #
 # <-----------            WISE  INDEX            -----------> #
 #                                                             #
-get_wise_index <- function() {
+get_wics_sector <- function() {
   sector_code = c('G2510', 'G2520', 'G2530', 'G2540', 'G2550', 'G2560', 
   'G3510', 'G3520', 'G5010', 
   'G5020', 'G4010', 'G4020', 'G4030', 'G4040', 'G4050', 
@@ -510,4 +514,47 @@ get_guide <- function(yyyymmdd, tickers, value_list, fs_list) {
   
   saveRDS(fs_list2, file.path(froot, "fs_list.Rds"))
   print("fs_list.Rds: done")
+}
+
+#                                                             #
+# <-----------               REPORT              -----------> #
+#                                                             #
+
+load_tickers <- function() {
+  csv <- file.path("data", "tickers.csv")
+  data = read.csv(csv, colClasses=c("종목코드"="character"))
+  data
+}
+
+load_sectors <- function() {
+  csv <- file.path("data", "wics_sector.csv")
+  data = read.csv(csv, colClasses=c("CMP_CD"="character"))
+  data
+}
+
+write_prices <- function() {
+  yyyy <- str_sub(get_latest_biz_day(),1,4)
+  tickers = load_tickers()
+
+  price_list = list()
+  csv_path <- file.path("data", yyyy)
+  for (i in 1 : nrow(tickers)) {
+    symbol = tickers[i, '종목코드']
+    price_list[[i]] =
+      read.csv(
+        file.path(csv_path, paste0(symbol, '.csv')), 
+        row.names = 2) %>%
+      select(c("Close")) %>%
+      as.xts()
+  }
+
+  price_list = do.call(cbind, price_list) %>% na.locf()
+  colnames(price_list) = tickers$'종목코드'
+  write.zoo(price_list, file=file.path("data", 'prices.csv'), sep=",")
+}
+
+load_prices <- function() {
+  csv <- file.path("data", "prices.csv")
+  data <- read.zoo(csv, header=TRUE, sep=",")
+  data
 }

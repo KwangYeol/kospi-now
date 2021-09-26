@@ -15,4 +15,4 @@ get_guide(yyyymmdd, tickers, ret$value, ret$fs)
 # ----
 
 # ==> Step 3. get wise index
-get_wise_index()
+get_wics_sector()

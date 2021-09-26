@@ -72,6 +72,13 @@
       "Repository": "RSPM",
       "Hash": "a2de53472129933a29975e7cfa3ffe28"
     },
+    "RiskPortfolios": {
+      "Package": "RiskPortfolios",
+      "Version": "2.1.4",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "64c7ee2ce4eef1d8d49e6938d6c679ac"
+    },
     "SQUAREM": {
       "Package": "SQUAREM",
       "Version": "2021.1",
@@ -148,6 +155,13 @@
       "Source": "Repository",
       "Repository": "RSPM",
       "Hash": "b7d7f1e926dfcd57c74ce93f5c048e80"
+    },
+    "cccp": {
+      "Package": "cccp",
+      "Version": "0.2-7",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "a6edffea4d3dbad558e95d6c9e48f016"
     },
     "class": {
       "Package": "class",
@@ -513,6 +527,13 @@
       "Repository": "CRAN",
       "Hash": "7c24ab3a1e3afe50388eb2d893aab255"
     },
+    "nloptr": {
+      "Package": "nloptr",
+      "Version": "1.2.2.2",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "2737faeee353704efec5afa1e943dd64"
+    },
     "nnet": {
       "Package": "nnet",
       "Version": "7.3-14",
@@ -799,6 +820,13 @@
       "Source": "Repository",
       "Repository": "RSPM",
       "Hash": "fde4fc571f5f61978652c229d4713845"
+    },
+    "timeSeries": {
+      "Package": "timeSeries",
+      "Version": "3062.100",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "7b9aa24993295b2fadf63d4d0003666e"
     },
     "timetk": {
       "Package": "timetk",
