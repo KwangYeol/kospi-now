@@ -275,6 +275,8 @@ data_market[invest_mom_neutral, ] %>%
   group_by(`SEC_NM_KOR`) %>%
   summarize(n = n())
 
+fwrite(data_market[invest_mom_neutral,], "data/report/sector_neutral.csv")
+
 
 #                                                             #
 # <-----------            10.2 마법공식          -----------> #
@@ -334,6 +336,7 @@ tickers[invest_magic, ] %>%
   mutate(`이익수익률` = round(magic_ey[invest_magic, ], 4),
          `투하자본수익률` = round(magic_roc[invest_magic, ], 4))
 
+fwrite(data_market[invest_magic,], "data/report/magic_fomular.csv")
 
 #                                                             #
 # <-----------   10.3 이상치 제거와 팩터 결합    -----------> #
@@ -407,3 +410,5 @@ tickers[invest_qvm, ] %>%
 # 포트폴리오 내 종목들의 지표별 평균
 cbind(quality_profit, values, ret_bind)[invest_qvm, ] %>% 
   apply(., 2, mean) %>% round(3) %>% t()
+
+fwrite(data_market[invest_qvm,], "data/report/multifactor.csv")

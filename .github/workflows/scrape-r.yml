@@ -38,6 +38,7 @@ jobs:
         .libPaths()
         chooseCRANmirror(ind=1)
         if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+        options(repos = c(CRAN = "https://cloud.r-project.org"))
         renv::restore()
 
     - run: Rscript ticker.R
