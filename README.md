@@ -9,7 +9,7 @@ docker run --rm -it \
     -e RENV_PATHS_ROOT="~/.local/share/renv" \
     -e RENV_PATHS_CACHE="/mnt/shared/renv/cache" \
     rocker/r-ver:4.0.3 \
-    bash
+    bash 
 ```
 
 Install system packages
@@ -25,4 +25,8 @@ renv::restore()'
 
 ```bash
 Rscript ticker.R
+
+Rscript ./naver.R
+
+Rscript ./fnguide.R
 ```

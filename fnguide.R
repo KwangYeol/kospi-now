@@ -1,11 +1,10 @@
 source("R/kuant.R")
 
-print(list.files())
+# print(list.files())
 # print(list.dirs("data"))
 
 # ==> Step 1. get tickers
-fpath <- file.path("data", "tickers.csv")
-tickers <- read_tickers(fpath)
+tickers <- load_tickers()
 
 yyyymmdd <- get_latest_biz_day()
 

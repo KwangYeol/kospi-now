@@ -4,6 +4,26 @@ sectors <- load_sectors()
 tickers <- load_tickers()
 prices <- load_prices()
 
+tickers %>% select(종목코드) -> ticker_list
+x0 = sapply(ticker_list$종목코드, function(x) x)
+x1 = sapply(ticker_list$종목코드, function(x) str_c('X', x))
+
+# d3 <- setdiff(x1, colnames(prices))
+# d3
+# d4 = unlist(lapply(d3, function(x) str_sub(x, 2)))
+# d4
+
+d0 <- intersect(x1, colnames(prices))
+d1 = unlist(lapply(d0, function(x) str_sub(x, 2)))
+summary(d0)
+summary(d1)
+
+tickers %>%
+  filter(`종목코드` %in% d1) ->
+  tickers
+
+prices[,d0] -> prices
+
 data_market = left_join(tickers, sectors, by = c('종목코드' = 'CMP_CD', '종목명' = 'CMP_KOR'))
 # data_market %>%
 #   distinct(SEC_NM_KOR) %>% c()
@@ -19,7 +39,7 @@ data_market = data_market %>%
                                         'big', 'small')
   )
 
-fwrite(data_market, "data/report/data_market.csv")
+# fwrite(data_market, "data/report/data_market.csv")
 
 # data_market %>%
 #   select(`종목명`, `ROE`, `size`) %>% head()
@@ -86,9 +106,9 @@ tickers[invest_lowvol_weekly, ] %>%
 # ! 일간, 주간 모두 변동성 낮은 종목들
 tickers[(invest_lowvol & invest_lowvol_weekly), '종목명']
 
-fwrite(data_market[invest_lowvol,], "data/report/lowvol_daily.csv")
-fwrite(data_market[invest_lowvol_weekly,], "data/report/lowvol_weekly.csv")
-fwrite(data_market[(invest_lowvol & invest_lowvol_weekly),], "data/report/lowvol_intersect.csv")
+# fwrite(data_market[invest_lowvol,], "data/report/lowvol_daily.csv")
+# fwrite(data_market[invest_lowvol_weekly,], "data/report/lowvol_weekly.csv")
+# fwrite(data_market[(invest_lowvol & invest_lowvol_weekly),], "data/report/lowvol_intersect.csv")
 
 #                                                             #
 # <-----------         9.3 모멘텀 전략           -----------> #
@@ -122,9 +142,9 @@ tickers[invest_mom_sharpe, ] %>%
 # ! 수익률과 위험조정 수익률 모두 높은 종목
 tickers[(invest_mom & invest_mom_sharpe), '종목명']
 
-fwrite(data_market[invest_mom,], "data/report/momentum.csv")
-fwrite(data_market[invest_mom_sharpe,], "data/report/momentum_sharpe.csv")
-fwrite(data_market[(invest_mom & invest_mom_sharpe),], "data/report/momentum_sharpe_intersect.csv")
+# fwrite(data_market[invest_mom,], "data/report/momentum.csv")
+# fwrite(data_market[invest_mom_sharpe,], "data/report/momentum_sharpe.csv")
+# fwrite(data_market[(invest_mom & invest_mom_sharpe),], "data/report/momentum_sharpe_intersect.csv")
 
 #                                                             #
 # <-----------        9.4.1 밸류 포트폴리오      -----------> #
@@ -154,8 +174,8 @@ low_values <- tickers[invest_value, ] %>%
 # ! 저PBR & 저PER & 저PCR & 저PSR 종목
 tickers[(invest_value), '종목명']
 
-fwrite(low_pbr, "data/report/low_pbr.csv")
-fwrite(data_market[invest_value,], "data/report/low_values.csv")
+# fwrite(low_pbr, "data/report/low_pbr.csv")
+# fwrite(data_market[invest_value,], "data/report/low_values.csv")
 
 #                                                             #
 # <-----------           9.5 퀄리티 전략         -----------> #
@@ -165,6 +185,18 @@ fwrite(data_market[invest_value,], "data/report/low_values.csv")
 
 # ! F-Score
 fs_list = readRDS("data/fs_list.Rds")
+
+# glimpse(fs_list[[1]])
+lapply(fs_list, function(x) {x[d1,]}) -> fs_list
+
+# z <- list(z1=list(a=1,b=2,c=3), z2=list(a=4,b=5,c=6), z3=list(a=NA, b=NA, c=NA))
+# z
+
+# z[[1]][c]
+# fs_list[[1]][x0,]
+
+# lapply(z, function(x) {x[c]})
+
 
 # 수익성
 ROA = fs_list$'지배주주순이익' / fs_list$'자산'
@@ -212,7 +244,7 @@ tickers[invest_F_Score, ] %>%
   select(`종목코드`, `종목명`) %>%
   mutate(`F-Score` = F_Score[invest_F_Score])
 
-fwrite(data_market[invest_F_Score,], "data/report/f_score.csv")
+# fwrite(data_market[invest_F_Score,], "data/report/f_score.csv")
 
 
 # ! 수익성 지표 결합
@@ -240,7 +272,7 @@ tickers[invest_quality, ] %>%
   select(`종목코드`, `종목명`) %>%
   cbind(round(quality_profit[invest_quality, ], 4))
 
-fwrite(data_market[invest_quality,], "data/report/quality_profit.csv")
+# fwrite(data_market[invest_quality,], "data/report/quality_profit.csv")
 
 #                                                             #
 # <-----------     10.1 섹터 중립 포트폴리오     -----------> #
@@ -275,7 +307,7 @@ data_market[invest_mom_neutral, ] %>%
   group_by(`SEC_NM_KOR`) %>%
   summarize(n = n())
 
-fwrite(data_market[invest_mom_neutral,], "data/report/sector_neutral.csv")
+# fwrite(data_market[invest_mom_neutral,], "data/report/sector_neutral.csv")
 
 
 #                                                             #
@@ -336,7 +368,7 @@ tickers[invest_magic, ] %>%
   mutate(`이익수익률` = round(magic_ey[invest_magic, ], 4),
          `투하자본수익률` = round(magic_roc[invest_magic, ], 4))
 
-fwrite(data_market[invest_magic,], "data/report/magic_fomular.csv")
+# fwrite(data_market[invest_magic,], "data/report/magic_fomular.csv")
 
 #                                                             #
 # <-----------   10.3 이상치 제거와 팩터 결합    -----------> #
@@ -411,4 +443,33 @@ tickers[invest_qvm, ] %>%
 cbind(quality_profit, values, ret_bind)[invest_qvm, ] %>% 
   apply(., 2, mean) %>% round(3) %>% t()
 
-fwrite(data_market[invest_qvm,], "data/report/multifactor.csv")
+# fwrite(data_market[invest_qvm,], "data/report/multifactor.csv")
+
+# ---
+
+library(writexl)
+
+data_market %>%
+  select(-c("종가", "대비", "등락률", "Date", "SEC_1ST", "SEC_CD", "IDX_CD", "ALL_MKT_VAL", "MKT_VAL", "S_WGT", "CAL_WGT", "SEQ", "TOP60", "APT_SHR_CNT")) %>%
+  mutate(대분류=SEC_NM_KOR, 중분류=IDX_NM_KOR, 섹터내비중=WGT) %>%
+  select(시장구분, 종목코드, 종목명, PER, PBR, PCR, PSR, ROE, EPS, BPS, 주당배당금, 배당수익률, 업종명, 대분류, 중분류, 섹터내비중, 시가총액, size) ->
+  data_market
+
+write_xlsx(
+  list(
+    data_market=data_market,
+    '저변동성 (일간)'=data_market[invest_lowvol,],
+    '저변동성 (주간)'=data_market[invest_lowvol_weekly,],
+    '저변동성 (공통)'=data_market[(invest_lowvol & invest_lowvol_weekly),],
+    '모멘텀 (12개월)'=data_market[invest_mom,],
+    '모멘텀 (위험조정)'=data_market[invest_mom_sharpe,],
+    '모멘텀 (공통)'=data_market[(invest_mom & invest_mom_sharpe),],
+    '저 PBR'=low_pbr,
+    '가치주'=data_market[invest_value,],
+    'F-score'=data_market[invest_F_Score,],
+    '퀄리티'=data_market[invest_quality,],
+    '모멘텀 중립'=data_market[invest_mom_neutral,],
+    '마법공식'=data_market[invest_magic,],
+    '퀄리티,가치,모멘텀 혼합'=data_market[invest_qvm,]), 
+  paste0("data_market_", yyyymmdd, ".xlsx"))
+

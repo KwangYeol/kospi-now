@@ -891,6 +891,13 @@
       "Repository": "RSPM",
       "Hash": "caf4781c674ffa549a4676d2d77b13cc"
     },
+    "writexl": {
+      "Package": "writexl",
+      "Version": "1.3.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "230396d86a3710b0ec8f50bd3c81483e"
+    },
     "xml2": {
       "Package": "xml2",
       "Version": "1.3.2",

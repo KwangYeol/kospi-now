@@ -10,6 +10,4 @@ kospi_tickers <- get_tickers()
 #   kospi_tickers
   # filter(`시장구분` == 'KOSPI') ->
 
-  # filter(asc(digest(object=`종목코드`, algo='sha256')) < asc('8'))->
-
 write_tickers(kospi_tickers)

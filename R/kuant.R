@@ -55,6 +55,8 @@ get_symbol_ <- function(name, count=2500, timeframe="day") {
     html_attr('data') -> 
   records
 
+  if (length(records) < 2) {throw(paste0("Not enough records", length(records)))}
+
   # parse record: transform to xts format
   records %>%
     read_delim(., delim='|', col_names=FALSE) %>%
@@ -75,7 +77,15 @@ get_symbols <- function(names, count=2500, timeframe="day") {
   symbol_list = list()
   i = 1
   for (name in names) {
-    df <- get_symbol_(name, count, timeframe)
+    tryCatch({
+      df <- get_symbol_(name, count, timeframe)
+    }, warning = function(e) {
+      df <- data.frame(Open=as.double(NA),High=as.double(NA),Low=as.double(NA),Close=as.double(NA),Volume=as.double(NA))
+      warning(paste0("Error in get_symbol_: ", name))
+    }, error = function(e) {
+      df <- data.frame(Open=as.double(NA),High=as.double(NA),Low=as.double(NA),Close=as.double(NA),Volume=as.double(NA))
+      warning(paste0("Error in get_symbol_: ", name))
+    })
     symbol_list[[name]] <- df
     # sleep
     cat(".")
@@ -95,8 +105,8 @@ write_symbols <- function(symbols) {
   print("Processing: ")
   options(datatable.fread.datatable=FALSE)
   for (name in names(symbols)) {
-    # cat(".")
-    print(name)
+    cat(".")
+    # print(name)
     symbols[[name]] %>%
       mutate(
         `Symbol` = name, 
@@ -111,7 +121,7 @@ write_symbols <- function(symbols) {
       ds
     # head(ds)
     spath <- file.path(fpath, paste0(name, ".csv"))
-    print(spath)
+    # print(spath)
     # TODO: overwrite하지말고 append 하는 방법을 찾자. 
     # if(file.exists(spath)) {
     #   ds_old <- fread(spath, header=T, 
@@ -232,7 +242,6 @@ write_tickers <- function(tickers) {
   fdir <- file.path(froot, yyyy)
   dir.create(fdir, showWarnings = FALSE)
   
-  fpath <- file.path(fdir, "tickers.csv")
   flatest <- file.path(froot, "tickers.csv")
 
   # if (!file.exists(flatest)) {
@@ -412,16 +421,16 @@ get_guide_crawl <- function(tickers) {
       fs_list[[code]] <- ret$fs
     }, warning = function(e) {
       cat("w")
+      warning(paste0("warning in Guide: ", name))
       value_list[[code]] <- data.frame(PER=as.double(NA),PBR=as.double(NA),PCR=as.double(NA),PSR=as.double(NA))
       value_list[[code]]$Symbol <- name
       fs_list[[code]] <- data.frame(NA)
-      warning(paste0("Error in Guide: ", name))
     }, error = function(e) {
       cat("e")
+      warning(paste0("error in Guide: ", name))
       value_list[[code]] <- data.frame(PER=as.double(NA),PBR=as.double(NA),PCR=as.double(NA),PSR=as.double(NA))
       value_list[[code]]$Symbol <- name
       fs_list[[code]] <- data.frame(NA)
-      warning(paste0("Error in Guide: ", name))
     })
 
     if (code %% 100 == 0) {
